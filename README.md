@@ -11,4 +11,4 @@ Also contains the R script for generating the charts.
  
 The code  was built using CodeBlocks (see http://www.codeblocks.org/).
 
-
+The code was compiled and tested on Linux.

@@ -8,38 +8,26 @@
 #include <sys/resource.h>
 #include <stdbool.h>
 
-// a test struct with the data spanning more than  1 cache line (64 bytes).
-// the final char element ("second") is outside the 64 byte cache line, and accessing
-// causes a cache miss.
-typedef struct _non_aligned_t
+/* A struct with the data spanning more than 1 cpu cache line (64 bytes).
+ * The final char element ("second") is outside the 64 byte cache line, 
+ * and accessing it causes a cache miss.
+ */
+typedef struct
 {
+    char pad[63];
     char first;
-    int64_t temp_int01;
-    int64_t temp_int02;
-    int64_t temp_int03;
-    int64_t temp_int04;
-    int64_t temp_int05;
-    int64_t temp_int06;
-    int64_t temp_int07;
-    int32_t temp_int08;
     char second;        // won't be in first cache line (64bytes)
 } non_aligned_t;
 
 
-// a test struct such that the 2 elements are retrieved on
-// a single cahce line
-typedef struct _aligned_t
+/* A test struct such that the 2 elements are retrieved on
+ * a single cache line
+ */
+typedef struct
 {
+	char pad[62];
     char first;
     char second;        // will be in same cacheline as "first"
-    int32_t temp_int08;
-    int64_t temp_int01;
-    int64_t temp_int02;
-    int64_t temp_int03;
-    int64_t temp_int04;
-    int64_t temp_int05;
-    int64_t temp_int06;
-    int64_t temp_int07;
 } aligned_t;
 
 
@@ -60,15 +48,19 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    // call once to warm up cpu (compensate for down-shift of clock freq during idle)
+    // call once to warm up cpu (ie, compensate for down-shift of clock 
+    // freq during idle period before running test)
     do_one_cache_line(false);
 
+	// now do it for real, and log stats
     do_one_cache_line(true);
 
     return 0;
 }
 
-
+/**
+ * Parse the command line args and validate them
+ */
 int handle_cli_args(int argc, char *argv[])
 {
     // format
@@ -106,12 +98,19 @@ int handle_cli_args(int argc, char *argv[])
 
 
 
-
+/**
+ * Runs code to access both aligned and non-aligned structs, and logs the stats
+ * for analysis
+ */
 void do_one_cache_line(const bool do_logging)
 {
     clock_t start, end;
     int cpu_time_used;
 
+
+	// ---------------------------------------
+	// run the test for the non-aligned struct
+	// ---------------------------------------
     non_aligned_t* nonaligned = (non_aligned_t*) malloc( NUM_STRUCTS * sizeof(non_aligned_t) );
 
     int reps,i = 0;
@@ -137,6 +136,9 @@ void do_one_cache_line(const bool do_logging)
     free(nonaligned);
 
 
+	// ---------------------------------------
+	// run the test for the aligned struct
+	// ---------------------------------------
     aligned_t* aligned = (aligned_t*) malloc( NUM_STRUCTS * sizeof(aligned_t) );
     for(reps = 0; reps < NUM_LOOPS; reps++)
     {

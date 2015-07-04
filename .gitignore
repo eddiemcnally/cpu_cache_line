@@ -1,0 +1,5 @@
+*.pdf
+.RData
+.Rhistory
+*.o
+cache_line_test

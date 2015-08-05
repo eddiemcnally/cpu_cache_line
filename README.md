@@ -1,4 +1,4 @@
-Refer to the wiki for an overview.
+Refer to the wiki (https://github.com/eddiemcnally/cpu_cache_line/wiki) for an overview.
 
 To build:
 ---------
